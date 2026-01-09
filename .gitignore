@@ -1,0 +1,14 @@
+node_modules/
+dist/
+build/
+.expo/
+*.log
+.env
+.DS_Store
+mobile_errors.txt
+backend_errors.txt
+mobile_errors_v2.txt
+backend_errors_v2.txt
+build_output.txt
+errors.txt
+mobile_build.txt
