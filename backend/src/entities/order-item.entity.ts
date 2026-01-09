@@ -20,14 +20,14 @@ export class OrderItem {
   precoUnitario: number;
 
   @Column({ nullable: true })
-  cor: string;
+  cor?: string;
 
   @Column({ nullable: true })
-  material: string;
+  material?: string;
 
   @Column('int', { nullable: true })
-  preenchimento: number;
+  preenchimento?: number;
 
   @Column('text', { nullable: true })
-  observacoesTecnicas: string;
+  observacoesTecnicas?: string;
 }

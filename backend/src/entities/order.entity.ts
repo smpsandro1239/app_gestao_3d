@@ -33,16 +33,16 @@ export class Order {
   status: OrderStatus;
 
   @Column({ nullable: true })
-  dataEntregaPrevista: Date;
+  dataEntregaPrevista?: Date;
 
   @Column({ nullable: true })
-  metodoEntrega: string;
+  metodoEntrega?: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   custoEntrega: number;
 
   @Column('text', { nullable: true })
-  notas: string;
+  notas?: string;
 
   @CreateDateColumn()
   dataCriacao: Date;

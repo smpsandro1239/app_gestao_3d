@@ -10,7 +10,7 @@ export class UsersService {
     private readonly userRepository: Repository<User>,
   ) {}
 
-  async findByEmail(email: string): Promise<User | undefined> {
+  async findByEmail(email: string): Promise<User | null> {
     return this.userRepository.findOne({ where: { email } });
   }
 
@@ -19,7 +19,7 @@ export class UsersService {
     return this.userRepository.save(user);
   }
 
-  async findById(id: number): Promise<User | undefined> {
+  async findById(id: number): Promise<User | null> {
     return this.userRepository.findOne({ where: { id } });
   }
 }

@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity('utilizadores')
 export class User {
@@ -9,13 +9,13 @@ export class User {
   email: string;
 
   @Column({ nullable: true })
-  nome: string;
+  nome?: string;
 
   @Column({ nullable: true })
-  googleId: string;
+  googleId?: string;
 
   @Column({ nullable: true })
-  avatar: string;
+  avatar?: string;
 
   @CreateDateColumn()
   dataCriacao: Date;

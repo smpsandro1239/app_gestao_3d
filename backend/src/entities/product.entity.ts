@@ -9,7 +9,7 @@ export class Product {
   nome: string;
 
   @Column('text', { nullable: true })
-  descricao: string;
+  descricao?: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
   preco: number;
@@ -18,7 +18,7 @@ export class Product {
   custoProducao: number;
 
   @Column('text', { array: true, nullable: true })
-  imagens: string[];
+  imagens?: string[];
 
   @Column({ default: true })
   ativo: boolean;

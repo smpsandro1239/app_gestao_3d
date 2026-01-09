@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import * as ExcelJS from 'exceljs';
+import { Workbook } from 'exceljs';
 import { FinanceService } from '../finance/finance.service';
 import { OrdersService } from '../orders/orders.service';
 
@@ -12,7 +12,7 @@ export class ReportsService {
 
   async generateOrdersExcel() {
     const orders = await this.ordersService.findAll();
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new Workbook();
     const sheet = workbook.addWorksheet('Pedidos');
 
     sheet.columns = [
@@ -38,7 +38,7 @@ export class ReportsService {
 
   async generateFinanceExcel() {
     const records = await this.financeService.findAll();
-    const workbook = new ExcelJS.Workbook();
+    const workbook = new Workbook();
     const sheet = workbook.addWorksheet('Financeiro');
 
     sheet.columns = [

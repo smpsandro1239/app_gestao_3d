@@ -10,13 +10,13 @@ export class Client {
   nome: string;
 
   @Column({ unique: true, nullable: true })
-  email: string;
+  email?: string;
 
   @Column({ nullable: true })
-  telefone: string;
+  telefone?: string;
 
   @Column({ nullable: true })
-  morada: string;
+  morada?: string;
 
   @OneToMany(() => Order, (order) => order.cliente)
   pedidos: Order[];
