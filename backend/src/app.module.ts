@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { APP_GUARD } from '@nestjs/core';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
@@ -24,6 +26,12 @@ import { UsersModule } from './modules/users/users.module';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      {
+        ttl: 60000,
+        limit: 100,
+      },
+    ]),
     ConfigModule.forRoot({
       isGlobal: true,
     }),
@@ -31,12 +39,21 @@ import { UsersModule } from './modules/users/users.module';
       imports: [ConfigModule],
       useFactory: (configService: ConfigService) => ({
         type: 'postgres',
-        host: configService.get<string>('DATABASE_HOST')!,
-        port: configService.get<number>('DATABASE_PORT')!,
-        username: configService.get<string>('DATABASE_USER')!,
-        password: configService.get<string>('DATABASE_PASSWORD')!,
-        database: configService.get<string>('DATABASE_NAME')!,
-        entities: [User, Client, Product, Order, OrderItem, Finance, Filament, Printer],
+        host: configService.get<string>('DATABASE_HOST'),
+        port: configService.get<number>('DATABASE_PORT'),
+        username: configService.get<string>('DATABASE_USER'),
+        password: configService.get<string>('DATABASE_PASSWORD'),
+        database: configService.get<string>('DATABASE_NAME'),
+        entities: [
+          User,
+          Client,
+          Product,
+          Order,
+          OrderItem,
+          Finance,
+          Filament,
+          Printer,
+        ],
         synchronize: true,
         logging: true,
       }),
@@ -54,6 +71,12 @@ import { UsersModule } from './modules/users/users.module';
     PrintersModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+  ],
 })
 export class AppModule {}
