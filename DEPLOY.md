@@ -15,15 +15,15 @@ Pode colocar a aplicação online em menos de 5 minutos usando os links no `READ
 
 O backend está preparado para correr num ambiente Docker.
 
-1.  **Configuração de Domínio e SSL**:
+1. **Configuração de Domínio e SSL**:
     - Recomenda-se o uso de **Nginx** como Reverse Proxy.
     - Use o **Certbot** para gerar certificados SSL gratuitos.
 
-2.  **Variáveis de Ambiente**:
+2. **Variáveis de Ambiente**:
     - No servidor, crie um ficheiro `.env` com as credenciais reais de produção.
     - Altere `JWT_SECRET`, `GOOGLE_CLIENT_ID` e `GOOGLE_CLIENT_SECRET`.
 
-3.  **Comando de Deploy**:
+3. **Comando de Deploy**:
 
     ```bash
     docker-compose up -d --build
@@ -33,19 +33,19 @@ O backend está preparado para correr num ambiente Docker.
 
 Para a aplicação mobile, recomenda-se o uso do Expo Application Services (EAS).
 
-1.  **Instalar EAS CLI**:
+1. **Instalar EAS CLI**:
 
     ```bash
     npm install -g eas-cli
     ```
 
-2.  **Login no Expo**:
+2. **Login no Expo**:
 
     ```bash
     eas login
     ```
 
-3.  **Build para Android/iOS**:
+3. **Build para Android/iOS**:
 
     ```bash
     eas build --platform android

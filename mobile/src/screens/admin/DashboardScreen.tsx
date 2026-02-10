@@ -543,6 +543,37 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
   },
+  orderMenuBtn: {
+    padding: 4,
+  },
+  orderMenuDropdown: {
+    position: 'absolute',
+    right: 0,
+    top: 25,
+    backgroundColor: COLORS.cardDark,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
+    zIndex: 1000,
+    minWidth: 120,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    elevation: 5,
+  },
+  orderMenuItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+    gap: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderDark,
+  },
+  orderMenuText: {
+    color: '#FFF',
+    fontSize: 12,
+    fontWeight: '500',
+  },
 });
 
 export default DashboardScreen;

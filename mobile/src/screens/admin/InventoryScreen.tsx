@@ -1,4 +1,4 @@
-import { AlertTriangle, Database, Edit3, MoreHorizontal, Plus, Search } from 'lucide-react-native';
+import { AlertTriangle, Database, Edit, Edit3, MoreHorizontal, Plus, Search, Trash2 } from 'lucide-react-native';
 import React from 'react';
 import {
     ActivityIndicator,
