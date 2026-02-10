@@ -1,9 +1,17 @@
-import { Controller, Get, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
+import {
+    Controller,
+    Get,
+    Param,
+    Post,
+    Res,
+    UploadedFile,
+    UseInterceptors,
+} from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Response } from 'express';
 import * as fs from 'fs';
 import { join } from 'path';
-import * as sharp from 'sharp';
+import sharp from 'sharp';
 
 @Controller('uploads')
 export class UploadsController {
@@ -16,7 +24,12 @@ export class UploadsController {
       return { error: 'No file received' };
     }
 
-    console.log('Received file:', file.originalname, 'saved as:', file.filename);
+    console.log(
+      'Received file:',
+      file.originalname,
+      'saved as:',
+      file.filename,
+    );
     const filePath = file.path;
     const fileName = file.filename;
     const outputFileName = `optimized-${fileName.split('.')[0]}.webp`;
@@ -47,7 +60,7 @@ export class UploadsController {
   }
 
   @Get(':imgpath')
-  seeUploadedFile(@Param('imgpath') image, @Res() res: Response) {
+  seeUploadedFile(@Param('imgpath') image: string, @Res() res: Response) {
     return res.sendFile(join(process.cwd(), 'uploads', image));
   }
 }
