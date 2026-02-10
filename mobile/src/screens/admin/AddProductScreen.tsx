@@ -1,4 +1,5 @@
 import * as ImagePicker from 'expo-image-picker';
+import { Formik } from 'formik';
 import {
     Camera,
     Check,
@@ -31,25 +32,38 @@ import {
     View,
     useWindowDimensions
 } from 'react-native';
+import * as Yup from 'yup';
 import { useSettings } from '../../context/SettingsContext';
 import { createProduct, getProduct, updateProduct } from '../../services/productsService';
 import { uploadImage } from '../../services/uploadService';
 import { COLORS } from '../../utils/theme';
 
+const ProductSchema = Yup.object().shape({
+    name: Yup.string().required('O nome é obrigatório'),
+    description: Yup.string(),
+    price: Yup.number().typeError('Deve ser um número').positive('O preço deve ser positivo').required('O preço é obrigatório'),
+    productionCost: Yup.number().typeError('Deve ser um número').min(0, 'Não pode ser negativo'),
+    estimatedWeight: Yup.number().typeError('Deve ser um número').positive('Deve ser maior que zero'),
+    printTime: Yup.number().typeError('Deve ser um número').positive('Deve ser maior que zero'),
+    stockQuantity: Yup.number().typeError('Deve ser um número').integer('Deve ser um inteiro').min(0, 'Não pode ser negativo'),
+    imageUrl: Yup.string(),
+});
+
 const AddProductScreen = ({ navigation, route }: any) => {
   const { productId } = route.params || {};
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [price, setPrice] = useState('');
-  const [productionCost, setProductionCost] = useState('');
-  const [estimatedWeight, setEstimatedWeight] = useState('');
-  const [printTime, setPrintTime] = useState('');
-  const [stockQuantity, setStockQuantity] = useState('0');
-  const [imageUrl, setImageUrl] = useState('');
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
-  const [isUploading, setIsUploading] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [initialValues, setInitialValues] = useState({
+      name: '',
+      description: '',
+      price: '',
+      productionCost: '',
+      estimatedWeight: '',
+      printTime: '',
+      stockQuantity: '0',
+      imageUrl: '',
+  });
 
   const { currency } = useSettings();
   const { width } = useWindowDimensions();
@@ -64,16 +78,16 @@ const AddProductScreen = ({ navigation, route }: any) => {
     setIsLoading(true);
     try {
       const product = await getProduct(productId);
-      setName(product.nome);
-      setDescription(product.descricao || '');
-      setPrice(product.preco.toString());
-      setProductionCost(product.custoProducao?.toString() || '');
-      setEstimatedWeight(product.pesoEstimado?.toString() || '');
-      setPrintTime(product.tempoImpressao?.toString() || '');
-      setStockQuantity(product.stockQuantity.toString());
-      if (product.imagens && product.imagens.length > 0) {
-        setImageUrl(product.imagens[0]);
-      }
+      setInitialValues({
+          name: product.nome,
+          description: product.descricao || '',
+          price: product.preco.toString(),
+          productionCost: product.custoProducao?.toString() || '',
+          estimatedWeight: product.pesoEstimado?.toString() || '',
+          printTime: product.tempoImpressao?.toString() || '',
+          stockQuantity: product.stockQuantity.toString(),
+          imageUrl: (product.imagens && product.imagens.length > 0) ? product.imagens[0] : '',
+      });
     } catch (error) {
       Alert.alert('Erro', 'Não foi possível carregar o produto');
       navigation.goBack();
@@ -82,7 +96,7 @@ const AddProductScreen = ({ navigation, route }: any) => {
     }
   };
 
-  const pickImage = async () => {
+  const pickImage = async (setFieldValue: any) => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
       Alert.alert('Permissão Negada', 'Precisamos de acesso às suas fotos para continuar.');
@@ -98,24 +112,18 @@ const AddProductScreen = ({ navigation, route }: any) => {
 
     if (!result.canceled) {
       setLocalImageUri(result.assets[0].uri);
-      setImageUrl('');
+      setFieldValue('imageUrl', ''); // Clear URL input if picking local
     }
   };
 
-  const handleSave = async () => {
-    if (!name || !price) {
-      Alert.alert('Erro', 'Nome e Preço são obrigatórios.');
-      return;
-    }
+  const handleSave = async (values: any, { setSubmitting }: any) => {
+    console.log('Starting save process for:', values.name);
 
-    setIsUploading(true);
-    console.log('Starting save process for:', name);
-
-    let finalImageUrl = imageUrl;
+    let finalImageUrl = values.imageUrl;
 
     try {
-      // Helper to handle comma as decimal separator (common in PT/BR)
-      const parseNum = (val: string) => {
+      // Helper to handle comma as decimal separator
+      const parseNum = (val: string | number) => {
         if (!val) return 0;
         const sanitized = val.toString().replace(',', '.');
         return parseFloat(sanitized) || 0;
@@ -128,13 +136,13 @@ const AddProductScreen = ({ navigation, route }: any) => {
       }
 
       const productData = {
-        nome: name,
-        descricao: description,
-        preco: parseNum(price),
-        custoProducao: parseNum(productionCost),
-        pesoEstimado: parseNum(estimatedWeight),
-        tempoImpressao: parseNum(printTime),
-        stockQuantity: parseNum(stockQuantity),
+        nome: values.name,
+        descricao: values.description,
+        preco: parseNum(values.price),
+        custoProducao: parseNum(values.productionCost),
+        pesoEstimado: parseNum(values.estimatedWeight),
+        tempoImpressao: parseNum(values.printTime),
+        stockQuantity: parseNum(values.stockQuantity),
         imagens: finalImageUrl ? [finalImageUrl] : [],
       };
 
@@ -159,11 +167,19 @@ const AddProductScreen = ({ navigation, route }: any) => {
       const errorMessage = error.response?.data?.message || error.message || 'Erro de conexão';
       Alert.alert('Erro', `Falha ao salvar: ${errorMessage}`);
     } finally {
-      setIsUploading(false);
+      setSubmitting(false);
     }
   };
 
   const isWide = width > 768;
+
+  if (isLoading) {
+      return (
+          <SafeAreaView style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
+              <ActivityIndicator size="large" color={COLORS.primary} />
+          </SafeAreaView>
+      );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -178,163 +194,187 @@ const AddProductScreen = ({ navigation, route }: any) => {
             <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerBtn}>
                 <ChevronLeft color="#FFF" size={24} />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Novo Produto 3D</Text>
+            <Text style={styles.headerTitle}>{productId ? 'Editar Produto' : 'Novo Produto 3D'}</Text>
             <View style={{ width: 44 }} />
         </View>
 
-        <ScrollView
-            style={{ flex: 1 }}
-            contentContainerStyle={styles.scrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={true}
+        <Formik
+            initialValues={initialValues}
+            enableReinitialize
+            validationSchema={ProductSchema}
+            onSubmit={handleSave}
         >
-            <View style={[styles.formWrapper, isWide && { maxWidth: 800, alignSelf: 'center' }]}>
-                <InputGroup
-                    icon={Tag}
-                    label="NOME DO MODELO"
-                    placeholder="Ex: Miniatura Dragão, Suporte Headset..."
-                    value={name}
-                    onChangeText={setName}
-                />
-
-                <InputGroup
-                    icon={Type}
-                    label="DESCRIÇÃO"
-                    placeholder="Detalhes sobre a peça..."
-                    value={description}
-                    onChangeText={setDescription}
-                    multiline
-                />
-
-                <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
-                    <View style={{ flex: 1 }}>
+            {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched, isSubmitting, isValid }) => (
+                <ScrollView
+                    style={{ flex: 1 }}
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={true}
+                >
+                    <View style={[styles.formWrapper, isWide && { maxWidth: 800, alignSelf: 'center' }]}>
                         <InputGroup
-                            icon={currency === '€' ? Euro : DollarSign}
-                            label={`PREÇO DE VENDA (${currency})`}
-                            placeholder="25.00"
-                            keyboardType="numeric"
-                            value={price}
-                            onChangeText={setPrice}
+                            icon={Tag}
+                            label="NOME DO MODELO"
+                            placeholder="Ex: Miniatura Dragão, Suporte Headset..."
+                            value={values.name}
+                            onChangeText={handleChange('name')}
+                            onBlur={handleBlur('name')}
+                            error={touched.name && errors.name}
                         />
-                    </View>
-                    <View style={[{ flex: 1 }, isWide ? { marginLeft: 15 } : { marginTop: 0 }]}>
-                        <InputGroup
-                            icon={currency === '€' ? Euro : DollarSign}
-                            label={`CUSTO FIXO (${currency})`}
-                            placeholder="5.00"
-                            keyboardType="numeric"
-                            value={productionCost}
-                            onChangeText={setProductionCost}
-                        />
-                    </View>
-                </View>
 
-                <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
-                    <View style={{ flex: 1 }}>
                         <InputGroup
-                            icon={Weight}
-                            label="PESO EST. (G)"
-                            placeholder="150"
-                            keyboardType="numeric"
-                            value={estimatedWeight}
-                            onChangeText={setEstimatedWeight}
+                            icon={Type}
+                            label="DESCRIÇÃO"
+                            placeholder="Detalhes sobre a peça..."
+                            value={values.description}
+                            onChangeText={handleChange('description')}
+                            onBlur={handleBlur('description')}
+                            multiline
                         />
-                    </View>
-                    <View style={[{ flex: 1 }, isWide ? { marginLeft: 15 } : { marginTop: 0 }]}>
-                        <InputGroup
-                            icon={Clock}
-                            label="TEMPO (MIN)"
-                            placeholder="120"
-                            keyboardType="numeric"
-                            value={printTime}
-                            onChangeText={setPrintTime}
-                        />
-                    </View>
-                </View>
 
-                <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
-                    <View style={{ flex: 1 }}>
-                        <InputGroup
-                            icon={Layers}
-                            label="STOCK INICIAL"
-                            placeholder="0"
-                            keyboardType="numeric"
-                            value={stockQuantity}
-                            onChangeText={setStockQuantity}
-                        />
-                    </View>
-                    <View style={{ flex: 1, marginLeft: isWide ? 15 : 0 }} />
-                </View>
+                        <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
+                            <View style={{ flex: 1 }}>
+                                <InputGroup
+                                    icon={currency === '€' ? Euro : DollarSign}
+                                    label={`PREÇO DE VENDA (${currency})`}
+                                    placeholder="25.00"
+                                    keyboardType="numeric"
+                                    value={values.price}
+                                    onChangeText={handleChange('price')}
+                                    onBlur={handleBlur('price')}
+                                    error={touched.price && errors.price}
+                                />
+                            </View>
+                            <View style={[{ flex: 1 }, isWide ? { marginLeft: 15 } : { marginTop: 0 }]}>
+                                <InputGroup
+                                    icon={currency === '€' ? Euro : DollarSign}
+                                    label={`CUSTO FIXO (${currency})`}
+                                    placeholder="5.00"
+                                    keyboardType="numeric"
+                                    value={values.productionCost}
+                                    onChangeText={handleChange('productionCost')}
+                                    onBlur={handleBlur('productionCost')}
+                                    error={touched.productionCost && errors.productionCost}
+                                />
+                            </View>
+                        </View>
 
-                <View style={styles.imageSection}>
-                    <View style={styles.sectionHeader}>
-                        <ImageIcon color={COLORS.primary} size={18} />
-                        <Text style={styles.inputLabel}>IMAGEM DO PRODUTO</Text>
-                    </View>
+                        <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
+                            <View style={{ flex: 1 }}>
+                                <InputGroup
+                                    icon={Weight}
+                                    label="PESO EST. (G)"
+                                    placeholder="150"
+                                    keyboardType="numeric"
+                                    value={values.estimatedWeight}
+                                    onChangeText={handleChange('estimatedWeight')}
+                                    onBlur={handleBlur('estimatedWeight')}
+                                    error={touched.estimatedWeight && errors.estimatedWeight}
+                                />
+                            </View>
+                            <View style={[{ flex: 1 }, isWide ? { marginLeft: 15 } : { marginTop: 0 }]}>
+                                <InputGroup
+                                    icon={Clock}
+                                    label="TEMPO (MIN)"
+                                    placeholder="120"
+                                    keyboardType="numeric"
+                                    value={values.printTime}
+                                    onChangeText={handleChange('printTime')}
+                                    onBlur={handleBlur('printTime')}
+                                    error={touched.printTime && errors.printTime}
+                                />
+                            </View>
+                        </View>
 
-                    <View style={[styles.imagePickerOptions, !isWide && { flexDirection: 'column', alignItems: 'stretch' }]}>
-                        <TouchableOpacity style={[styles.imagePickerBtn, !isWide && { width: '100%', height: 180 }]} onPress={pickImage}>
-                            {localImageUri ? (
-                                <RNImage source={{ uri: localImageUri }} style={styles.previewImage} resizeMode="cover" />
-                            ) : (
-                                <View style={styles.imagePlaceHolder}>
-                                    <Camera color={COLORS.slate400} size={32} />
-                                    <Text style={styles.imagePlaceholderText}>Carregar Foto</Text>
+                        <View style={[styles.row, !isWide && { flexDirection: 'column' }]}>
+                            <View style={{ flex: 1 }}>
+                                <InputGroup
+                                    icon={Layers}
+                                    label="STOCK INICIAL"
+                                    placeholder="0"
+                                    keyboardType="numeric"
+                                    value={values.stockQuantity}
+                                    onChangeText={handleChange('stockQuantity')}
+                                    onBlur={handleBlur('stockQuantity')}
+                                    error={touched.stockQuantity && errors.stockQuantity}
+                                />
+                            </View>
+                            <View style={{ flex: 1, marginLeft: isWide ? 15 : 0 }} />
+                        </View>
+
+                        <View style={styles.imageSection}>
+                            <View style={styles.sectionHeader}>
+                                <ImageIcon color={COLORS.primary} size={18} />
+                                <Text style={styles.inputLabel}>IMAGEM DO PRODUTO</Text>
+                            </View>
+
+                            <View style={[styles.imagePickerOptions, !isWide && { flexDirection: 'column', alignItems: 'stretch' }]}>
+                                <TouchableOpacity style={[styles.imagePickerBtn, !isWide && { width: '100%', height: 180 }]} onPress={() => pickImage(setFieldValue)}>
+                                    {localImageUri ? (
+                                        <RNImage source={{ uri: localImageUri }} style={styles.previewImage} resizeMode="cover" />
+                                    ) : (
+                                        <View style={styles.imagePlaceHolder}>
+                                            <Camera color={COLORS.slate400} size={32} />
+                                            <Text style={styles.imagePlaceholderText}>Carregar Foto</Text>
+                                        </View>
+                                    )}
+                                </TouchableOpacity>
+
+                                <View style={[styles.urlInputContainer, !isWide && { marginTop: 15 }]}>
+                                    {isWide && <Text style={styles.orText}>— OU —</Text>}
+                                    <InputGroup
+                                        icon={Package}
+                                        label="URL DA IMAGEM"
+                                        placeholder="https://..."
+                                        value={values.imageUrl}
+                                        onChangeText={(text: string) => {
+                                            setFieldValue('imageUrl', text);
+                                            setLocalImageUri(null);
+                                        }}
+                                        onBlur={handleBlur('imageUrl')}
+                                        error={touched.imageUrl && errors.imageUrl}
+                                    />
                                 </View>
+                            </View>
+                        </View>
+
+                        <TouchableOpacity
+                            style={[
+                                styles.saveBtn,
+                                (isSubmitting || !isValid) && styles.saveBtnDisabled,
+                                isSuccess && { backgroundColor: COLORS.success }
+                            ]}
+                            onPress={() => handleSubmit()}
+                            disabled={isSubmitting || isSuccess || !isValid}
+                        >
+                            {isSubmitting ? (
+                                <ActivityIndicator color="#FFF" />
+                            ) : isSuccess ? (
+                                <>
+                                    <Check color="#FFF" size={20} />
+                                    <Text style={styles.saveBtnText}>Produto Guardado!</Text>
+                                </>
+                            ) : (
+                                <>
+                                    <Save color="#FFF" size={20} />
+                                    <Text style={styles.saveBtnText}>Guardar Produto</Text>
+                                </>
                             )}
                         </TouchableOpacity>
-
-                        <View style={[styles.urlInputContainer, !isWide && { marginTop: 15 }]}>
-                            {isWide && <Text style={styles.orText}>— OU —</Text>}
-                            <InputGroup
-                                icon={Package}
-                                label="URL DA IMAGEM"
-                                placeholder="https://..."
-                                value={imageUrl}
-                                onChangeText={(text: string) => {
-                                    setImageUrl(text);
-                                    setLocalImageUri(null);
-                                }}
-                            />
-                        </View>
                     </View>
-                </View>
-
-                <TouchableOpacity
-                    style={[
-                        styles.saveBtn,
-                        (isUploading || !name || !price) && styles.saveBtnDisabled,
-                        isSuccess && { backgroundColor: COLORS.success }
-                    ]}
-                    onPress={handleSave}
-                    disabled={isUploading || isSuccess || !name || !price}
-                >
-                    {isUploading ? (
-                        <ActivityIndicator color="#FFF" />
-                    ) : isSuccess ? (
-                        <>
-                            <Check color="#FFF" size={20} />
-                            <Text style={styles.saveBtnText}>Produto Guardado!</Text>
-                        </>
-                    ) : (
-                        <>
-                            <Save color="#FFF" size={20} />
-                            <Text style={styles.saveBtnText}>Guardar Produto</Text>
-                        </>
-                    )}
-                </TouchableOpacity>
-            </View>
-        </ScrollView>
+                </ScrollView>
+            )}
+        </Formik>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
 };
 
-const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, multiline }: any) => (
+const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, onBlur, multiline, error }: any) => (
   <View style={styles.inputGroup}>
     <Text style={styles.inputLabel}>{label}</Text>
-    <View style={[styles.inputWrapper, multiline && styles.multilineWrapper]}>
-      <Icon color={COLORS.primary} size={18} style={[styles.inputIcon, multiline && { marginTop: 15 }]} />
+    <View style={[styles.inputWrapper, multiline && styles.multilineWrapper, error && { borderColor: '#ef4444' }]}>
+      <Icon color={error ? '#ef4444' : COLORS.primary} size={18} style={[styles.inputIcon, multiline && { marginTop: 15 }]} />
       <TextInput
         style={[styles.input, multiline && styles.multilineInput]}
         placeholder={placeholder}
@@ -342,9 +382,11 @@ const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onCha
         keyboardType={keyboardType}
         value={value}
         onChangeText={onChangeText}
+        onBlur={onBlur}
         multiline={multiline}
       />
     </View>
+    {error && <Text style={styles.errorText}>{error}</Text>}
   </View>
 );
 
@@ -415,6 +457,12 @@ const styles = StyleSheet.create({
     height: '100%',
     textAlignVertical: 'top',
     paddingTop: 15,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 11,
+    marginTop: 6,
+    fontWeight: '500',
   },
   row: {
     flexDirection: 'row',

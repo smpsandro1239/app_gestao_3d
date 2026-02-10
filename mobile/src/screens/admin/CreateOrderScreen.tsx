@@ -1,3 +1,4 @@
+import { Formik } from 'formik';
 import { Calendar, Check, ChevronDown, ChevronLeft, DollarSign, Package, Plus, Save, ShoppingCart, Trash2, User } from 'lucide-react-native';
 import React, { useEffect, useState } from 'react';
 import {
@@ -15,32 +16,36 @@ import {
     useWindowDimensions,
     View
 } from 'react-native';
+import * as Yup from 'yup';
+
 import { useSettings } from '../../context/SettingsContext';
 import { Client, getClients } from '../../services/clientsService';
 import { createOrder } from '../../services/orderService';
 import { getProducts, Product } from '../../services/productsService';
 import { COLORS } from '../../utils/theme';
 
+const OrderSchema = Yup.object().shape({
+    client: Yup.object().nullable().required('Selecione um cliente'),
+    date: Yup.string().required('Data é obrigatória'),
+    // orderItems validation is handled manually or via a custom test, but simpler to check on submit
+});
+
 const CreateOrderScreen = ({ navigation, route }: any) => {
   const [clients, setClients] = useState<Client[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
-
-  const [selectedClient, setSelectedClient] = useState<Client | null>(null);
-  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [orderItems, setOrderItems] = useState<any[]>([]);
 
+  // Temp state for adding items (not part of main formik)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [quantity, setQuantity] = useState('1');
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [itemPrice, setItemPrice] = useState('');
 
   const [modalVisible, setModalVisible] = useState(false);
   const [modalType, setModalType] = useState<'client' | 'product'>('client');
-  const [isSaving, setIsSaving] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
 
   const { width } = useWindowDimensions();
-
-  const { preSelectedProductId } = route.params || {};
+  const { preSelectedProductId, copyOrderId } = route.params || {};
   const { currency, formatPrice } = useSettings();
 
   useEffect(() => {
@@ -57,19 +62,23 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
     }
   }, [products, preSelectedProductId]);
 
-  const { copyOrderId } = route.params || {};
-
   useEffect(() => {
     if (copyOrderId) {
       loadCopyOrder(copyOrderId);
     }
   }, [copyOrderId]);
 
+  // We need a ref to set values if we load a copy order, but Formik handles initialValues.
+  // Since we load data async, we might want to delay rendering Formik or use enableReinitialize.
+  // For simplicity, we'll store the initial client in state if copying.
+  const [initialClient, setInitialClient] = useState<Client | null>(null);
+
   const loadCopyOrder = async (id: number) => {
     try {
       const { getOrder } = require('../../services/orderService');
       const oldOrder = await getOrder(id);
-      setSelectedClient(oldOrder.cliente);
+      setInitialClient(oldOrder.cliente);
+
       const items = oldOrder.itens.map((it: any) => ({
         produtoId: it.produto.id,
         nome: it.produto.nome,
@@ -132,22 +141,17 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
           style: 'default',
         },
         {
-          text: 'Finalizar Encomenda',
-          onPress: () => console.log('Finalizar'),
+          text: 'Continuar', // Changed to standard "Continuar" as "Finalizar" might be confusing with the main save button
           style: 'cancel',
         },
       ]
     );
   };
 
-  const handleSave = async () => {
-    if (!selectedClient) {
-      Alert.alert('Erro', 'Selecione um cliente.');
-      return;
-    }
-
+  const handleSave = async (values: any, { setSubmitting }: any) => {
     if (orderItems.length === 0 && !selectedProduct) {
       Alert.alert('Erro', 'Adicione pelo menos um item à encomenda.');
+      setSubmitting(false);
       return;
     }
 
@@ -161,11 +165,10 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
       });
     }
 
-    setIsSaving(true);
     try {
         await createOrder({
-            clienteId: selectedClient.id,
-            dataEntregaPrevista: new Date(date).toISOString(),
+            clienteId: values.client.id,
+            dataEntregaPrevista: new Date(values.date).toISOString(),
             metodoEntrega: 'Entrega',
             custoEntrega: 0,
             itens: finalItems
@@ -180,19 +183,13 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
         const errorMsg = error.response?.data?.message || 'Falha ao criar a encomenda.';
         Alert.alert('Erro', Array.isArray(errorMsg) ? errorMsg.join('\n') : errorMsg);
     } finally {
-        setIsSaving(false);
+        setSubmitting(false);
     }
   };
 
   const openModal = (type: 'client' | 'product') => {
     setModalType(type);
     setModalVisible(true);
-  };
-
-  const handleSelect = (item: any) => {
-    if (modalType === 'client') setSelectedClient(item);
-    else setSelectedProduct(item);
-    setModalVisible(false);
   };
 
   return (
@@ -208,156 +205,179 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
         <View style={{ width: 44 }} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.sectionTitle}>Detalhes do Cliente</Text>
-        <TouchableOpacity onPress={() => openModal('client')}>
-            <InputGroup
-            icon={User}
-            label="CLIENTE"
-            placeholder="Selecione um cliente"
-            value={selectedClient?.nome}
-            editable={false}
-            rightIcon={ChevronDown}
-            />
-        </TouchableOpacity>
-
-        <Text style={styles.sectionTitle}>Detalhes do Modelo</Text>
-        <TouchableOpacity onPress={() => openModal('product')}>
-            <InputGroup
-            icon={Package}
-            label="PRODUTO / SERVIÇO"
-            placeholder="Selecione um modelo"
-            value={selectedProduct?.nome}
-            editable={false}
-            rightIcon={ChevronDown}
-            />
-        </TouchableOpacity>
-
-        <View style={styles.row}>
-            <View style={{flex: 1}}>
-                <InputGroup
-                    icon={ShoppingCart}
-                    label="QUANTIDADE"
-                    placeholder="1"
-                    keyboardType="numeric"
-                    value={quantity}
-                    onChangeText={setQuantity}
-                />
-            </View>
-            <View style={{width: 15}} />
-            <View style={{flex: 1}}>
-                <InputGroup
-                    icon={DollarSign}
-                    label={`SUBTOTAL (${currency})`}
-                    placeholder="0.00"
-                    keyboardType="numeric"
-                    value={itemPrice}
-                    onChangeText={setItemPrice}
-                />
-            </View>
-        </View>
-
-        <TouchableOpacity style={styles.addItemBtn} onPress={handleAddItem}>
-          <Plus color={COLORS.primary} size={20} />
-          <Text style={styles.addItemBtnText}>Adicionar à Encomenda</Text>
-        </TouchableOpacity>
-
-        {orderItems.length > 0 && (
-          <View style={styles.basketContainer}>
-            <Text style={styles.sectionTitle}>Itens na Encomenda</Text>
-            {orderItems.map((item, index) => (
-              <View key={index} style={styles.basketItem}>
-                <View style={styles.basketItemInfo}>
-                  <Text style={styles.basketItemName}>{item.nome}</Text>
-                  <Text style={styles.basketItemMeta}>{item.quantidade}x @ {formatPrice(item.precoUnitario)}</Text>
-                </View>
-                <View style={styles.basketItemRight}>
-                  <Text style={styles.basketItemTotal}>{formatPrice(item.total)}</Text>
-                  <TouchableOpacity onPress={() => {
-                    const newItems = [...orderItems];
-                    newItems.splice(index, 1);
-                    setOrderItems(newItems);
-                  }}>
-                    <Trash2 color="#FF4444" size={18} style={{ marginLeft: 10 }} />
-                  </TouchableOpacity>
-                </View>
-              </View>
-            ))}
-
-            <View style={styles.totalContainer}>
-              <Text style={styles.totalLabel}>TOTAL DA ENCOMENDA</Text>
-              <Text style={styles.totalValue}>
-                {formatPrice(orderItems.reduce((acc, curr) => acc + curr.total, 0) + (selectedProduct ? Number(itemPrice) : 0))}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        <View style={{ marginTop: 20 }}>
-          <InputGroup
-            icon={Calendar}
-            label="DATA ENTREGA PREVISTA"
-            placeholder="YYYY-MM-DD"
-            value={date}
-            onChangeText={setDate}
-          />
-        </View>
-        <TouchableOpacity
-          style={[
-            styles.saveBtn,
-            (!selectedClient || (orderItems.length === 0 && !selectedProduct) || isSaving || isSuccess) && styles.saveBtnDisabled,
-            isSuccess && { backgroundColor: COLORS.success }
-          ]}
-          onPress={handleSave}
-          disabled={!selectedClient || (orderItems.length === 0 && !selectedProduct) || isSaving || isSuccess}
-        >
-          {isSaving ? (
-            <ActivityIndicator color="#FFF" />
-          ) : isSuccess ? (
+      <Formik
+        initialValues={{
+            client: initialClient,
+            date: new Date().toISOString().split('T')[0],
+        }}
+        enableReinitialize
+        validationSchema={OrderSchema}
+        onSubmit={handleSave}
+      >
+        {({ handleChange, handleBlur, handleSubmit, setFieldValue, values, errors, touched, isSubmitting, isValid }) => (
             <>
-              <Check color="#FFF" size={20} />
-              <Text style={styles.saveBtnText}>Encomenda Criada!</Text>
-            </>
-          ) : (
-            <>
-              <Save color="#FFF" size={20} />
-              <Text style={styles.saveBtnText}>Finalizar e Criar Encomenda</Text>
-            </>
-          )}
-        </TouchableOpacity>
-      </ScrollView>
+                <ScrollView contentContainerStyle={styles.scrollContent}>
+                    <Text style={styles.sectionTitle}>Detalhes do Cliente</Text>
+                    <TouchableOpacity onPress={() => openModal('client')}>
+                        <InputGroup
+                            icon={User}
+                            label="CLIENTE"
+                            placeholder="Selecione um cliente"
+                            value={values.client?.nome || ''}
+                            editable={false}
+                            rightIcon={ChevronDown}
+                            error={touched.client && errors.client}
+                        />
+                    </TouchableOpacity>
 
-      {/* Selector Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-                <Text style={styles.modalTitle}>Selecione {modalType === 'client' ? 'o Cliente' : 'o Produto'}</Text>
-                <FlatList
-                    data={modalType === 'client' ? clients : products}
-                    keyExtractor={(item: any) => item.id.toString()}
-                    renderItem={({ item }: any) => (
-                        <TouchableOpacity style={styles.modalItem} onPress={() => handleSelect(item)}>
-                            <Text style={styles.modalItemText}>{item.nome}</Text>
-                            {modalType === 'product' && <Text style={styles.modalItemSub}>{formatPrice(item.preco)}</Text>}
-                        </TouchableOpacity>
+                    <Text style={styles.sectionTitle}>Detalhes do Modelo</Text>
+                    <TouchableOpacity onPress={() => openModal('product')}>
+                        <InputGroup
+                            icon={Package}
+                            label="PRODUTO / SERVIÇO"
+                            placeholder="Selecione um modelo"
+                            value={selectedProduct?.nome}
+                            editable={false}
+                            rightIcon={ChevronDown}
+                        />
+                    </TouchableOpacity>
+
+                    <View style={styles.row}>
+                        <View style={{flex: 1}}>
+                            <InputGroup
+                                icon={ShoppingCart}
+                                label="QUANTIDADE"
+                                placeholder="1"
+                                keyboardType="numeric"
+                                value={quantity}
+                                onChangeText={setQuantity}
+                            />
+                        </View>
+                        <View style={{width: 15}} />
+                        <View style={{flex: 1}}>
+                            <InputGroup
+                                icon={DollarSign}
+                                label={`SUBTOTAL (${currency})`}
+                                placeholder="0.00"
+                                keyboardType="numeric"
+                                value={itemPrice}
+                                onChangeText={setItemPrice}
+                            />
+                        </View>
+                    </View>
+
+                    <TouchableOpacity style={styles.addItemBtn} onPress={handleAddItem}>
+                    <Plus color={COLORS.primary} size={20} />
+                    <Text style={styles.addItemBtnText}>Adicionar à Encomenda</Text>
+                    </TouchableOpacity>
+
+                    {orderItems.length > 0 && (
+                    <View style={styles.basketContainer}>
+                        <Text style={styles.sectionTitle}>Itens na Encomenda</Text>
+                        {orderItems.map((item, index) => (
+                        <View key={index} style={styles.basketItem}>
+                            <View style={styles.basketItemInfo}>
+                            <Text style={styles.basketItemName}>{item.nome}</Text>
+                            <Text style={styles.basketItemMeta}>{item.quantidade}x @ {formatPrice(item.precoUnitario)}</Text>
+                            </View>
+                            <View style={styles.basketItemRight}>
+                            <Text style={styles.basketItemTotal}>{formatPrice(item.total)}</Text>
+                            <TouchableOpacity onPress={() => {
+                                const newItems = [...orderItems];
+                                newItems.splice(index, 1);
+                                setOrderItems(newItems);
+                            }}>
+                                <Trash2 color="#FF4444" size={18} style={{ marginLeft: 10 }} />
+                            </TouchableOpacity>
+                            </View>
+                        </View>
+                        ))}
+
+                        <View style={styles.totalContainer}>
+                        <Text style={styles.totalLabel}>TOTAL DA ENCOMENDA</Text>
+                        <Text style={styles.totalValue}>
+                            {formatPrice(orderItems.reduce((acc, curr) => acc + curr.total, 0) + (selectedProduct ? Number(itemPrice) : 0))}
+                        </Text>
+                        </View>
+                    </View>
                     )}
-                />
-                <TouchableOpacity style={styles.closeBtn} onPress={() => setModalVisible(false)}>
-                    <Text style={styles.closeBtnText}>Cancelar</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-      </Modal>
 
+                    <View style={{ marginTop: 20 }}>
+                    <InputGroup
+                        icon={Calendar}
+                        label="DATA ENTREGA PREVISTA"
+                        placeholder="YYYY-MM-DD"
+                        value={values.date}
+                        onChangeText={handleChange('date')}
+                        onBlur={handleBlur('date')}
+                        error={touched.date && errors.date}
+                    />
+                    </View>
+                    <TouchableOpacity
+                        style={[
+                            styles.saveBtn,
+                            (isSubmitting || !values.client || (orderItems.length === 0 && !selectedProduct) || isSuccess) && styles.saveBtnDisabled,
+                            isSuccess && { backgroundColor: COLORS.success }
+                        ]}
+                        onPress={() => handleSubmit()}
+                        disabled={isSubmitting || !values.client || (orderItems.length === 0 && !selectedProduct) || isSuccess}
+                    >
+                    {isSubmitting ? (
+                        <ActivityIndicator color="#FFF" />
+                    ) : isSuccess ? (
+                        <>
+                        <Check color="#FFF" size={20} />
+                        <Text style={styles.saveBtnText}>Encomenda Criada!</Text>
+                        </>
+                    ) : (
+                        <>
+                        <Save color="#FFF" size={20} />
+                        <Text style={styles.saveBtnText}>Finalizar e Criar Encomenda</Text>
+                        </>
+                    )}
+                    </TouchableOpacity>
+                </ScrollView>
+
+                {/* Selector Modal */}
+                <Modal visible={modalVisible} animationType="slide" transparent>
+                    <View style={styles.modalOverlay}>
+                        <View style={styles.modalContent}>
+                            <Text style={styles.modalTitle}>Selecione {modalType === 'client' ? 'o Cliente' : 'o Produto'}</Text>
+                            <FlatList
+                                data={modalType === 'client' ? clients : products}
+                                keyExtractor={(item: any) => item.id.toString()}
+                                renderItem={({ item }: any) => (
+                                    <TouchableOpacity style={styles.modalItem} onPress={() => {
+                                        if (modalType === 'client') {
+                                            setFieldValue('client', item);
+                                        } else {
+                                            setSelectedProduct(item);
+                                        }
+                                        setModalVisible(false);
+                                    }}>
+                                        <Text style={styles.modalItemText}>{item.nome}</Text>
+                                        {modalType === 'product' && <Text style={styles.modalItemSub}>{formatPrice(item.preco)}</Text>}
+                                    </TouchableOpacity>
+                                )}
+                            />
+                            <TouchableOpacity style={styles.closeBtn} onPress={() => setModalVisible(false)}>
+                                <Text style={styles.closeBtnText}>Cancelar</Text>
+                            </TouchableOpacity>
+                        </View>
+                    </View>
+                </Modal>
+            </>
+        )}
+      </Formik>
     </SafeAreaView>
   );
 };
 
-const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, editable = true, rightIcon: RightIcon }: any) => (
+const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, editable = true, rightIcon: RightIcon, error, onBlur }: any) => (
   <View style={styles.inputGroup}>
     <Text style={styles.inputLabel}>{label}</Text>
-    <View style={styles.inputWrapper}>
-      <Icon color={COLORS.primary} size={18} style={styles.inputIcon} />
+    <View style={[styles.inputWrapper, error && { borderColor: '#ef4444' }]}>
+      <Icon color={error ? '#ef4444' : COLORS.primary} size={18} style={styles.inputIcon} />
       <TextInput
         style={[styles.input, !editable && { opacity: 0.7 }]}
         placeholder={placeholder}
@@ -366,9 +386,11 @@ const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onCha
         value={value}
         onChangeText={onChangeText}
         editable={editable}
+        onBlur={onBlur}
       />
       {RightIcon && <RightIcon color={COLORS.slate400} size={20} style={{ marginRight: 15 }} />}
     </View>
+    {error && <Text style={styles.errorText}>{typeof error === 'string' ? error : 'Campo obrigatório'}</Text>}
   </View>
 );
 
@@ -437,6 +459,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     color: '#FFF',
     fontSize: 15,
+  },
+  errorText: {
+    color: '#ef4444',
+    fontSize: 11,
+    marginTop: 6,
+    fontWeight: '500',
   },
   row: {
     flexDirection: 'row',
