@@ -15,6 +15,18 @@ export class CreateProductDto {
   @IsOptional()
   custoProducao?: number;
 
+  @IsNumber()
+  @IsOptional()
+  pesoEstimado?: number;
+
+  @IsNumber()
+  @IsOptional()
+  tempoImpressao?: number;
+
+  @IsNumber()
+  @IsOptional()
+  stockQuantity?: number;
+
   @IsArray()
   @IsString({ each: true })
   @IsOptional()

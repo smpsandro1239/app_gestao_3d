@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, OnModuleInit } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { FinanceType } from '../../entities/finance.entity';
@@ -10,7 +10,7 @@ import { ProductsService } from '../products/products.service';
 import { CreateOrderDto } from './dto/create-order.dto';
 
 @Injectable()
-export class OrdersService {
+export class OrdersService implements OnModuleInit {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
@@ -20,6 +20,39 @@ export class OrdersService {
     private readonly productsService: ProductsService,
     private readonly financeService: FinanceService,
   ) {}
+
+  async onModuleInit() {
+    // Wait a bit to ensure other services have seeded
+    setTimeout(async () => {
+        const count = await this.orderRepository.count();
+        if (count === 0) {
+            console.log('Seeding initial orders...');
+            try {
+                const clients = await this.clientsService.findAll();
+                const products = await this.productsService.findAll();
+
+                if (clients.length > 0 && products.length > 0) {
+                    await this.create({
+                        clienteId: clients[0].id,
+                        metodoEntrega: 'Levantamento',
+                        custoEntrega: 0,
+                        dataEntregaPrevista: new Date(),
+                        notas: 'Cliente habitual',
+                        itens: [
+                            {
+                                produtoId: products[0].id,
+                                quantidade: 1,
+                                precoUnitario: products[0].preco
+                            }
+                        ]
+                    });
+                }
+            } catch (e) {
+                console.log('Error seeding orders:', e.message);
+            }
+        }
+    }, 5000);
+  }
 
   async findAll() {
     return await this.orderRepository.find({

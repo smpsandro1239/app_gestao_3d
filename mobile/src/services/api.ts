@@ -1,17 +1,19 @@
-import axios from 'axios';
+import axios, { InternalAxiosRequestConfig } from 'axios';
+
+export const BASE_URL = 'http://localhost:3000';
 
 const api = axios.create({
-  baseURL: 'http://localhost:3000', // Alterar para o IP do seu servidor em produção
+  baseURL: BASE_URL,
 });
 
-// Interceptor para adicionar o token JWT
-api.interceptors.request.use(async (config) => {
-  // Aqui você buscaria o token do AsyncStorage (exemplo)
-  // const token = await AsyncStorage.getItem('token');
-  // if (token) {
-  //   config.headers.Authorization = `Bearer ${token}`;
-  // }
+api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   return config;
 });
+
+export const getImageUrl = (path?: string) => {
+    if (!path) return 'https://via.placeholder.com/200?text=Sem+Imagem';
+    if (path.startsWith('http')) return path;
+    return `${BASE_URL}${path.startsWith('/') ? '' : '/'}${path}`;
+};
 
 export default api;

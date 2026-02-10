@@ -4,6 +4,7 @@ import { OrderItem } from './order-item.entity';
 
 export enum OrderStatus {
   RECEBIDO = 'RECEBIDO',
+  FATIAMENTO = 'FATIAMENTO',
   EM_PRODUCAO = 'EM_PRODUCAO',
   FINALIZADO = 'FINALIZADO',
   ENVIADO = 'ENVIADO',

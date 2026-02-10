@@ -17,6 +17,15 @@ export class Product {
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
   custoProducao: number;
 
+  @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
+  pesoEstimado: number; // gramas
+
+  @Column('int', { default: 0, nullable: true })
+  tempoImpressao: number; // minutos
+
+  @Column('int', { default: 0 })
+  stockQuantity: number;
+
   @Column('text', { array: true, nullable: true })
   imagens?: string[];
 

@@ -17,6 +17,9 @@ export class User {
   @Column({ nullable: true })
   avatar?: string;
 
+  @Column({ nullable: true })
+  password?: string;
+
   @CreateDateColumn()
   dataCriacao: Date;
 

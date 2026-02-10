@@ -1,23 +1,79 @@
-import { Filter, Search, ShoppingCart } from 'lucide-react-native';
-import { useState } from 'react';
-import { FlatList, Image, SafeAreaView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { DollarSign, Filter, Plus, RefreshCcw, Search, ShoppingCart } from 'lucide-react-native';
+import { useCallback, useEffect, useState } from 'react';
+import {
+    ActivityIndicator,
+    FlatList,
+    Image,
+    RefreshControl,
+    SafeAreaView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    useWindowDimensions,
+    View
+} from 'react-native';
+import { useSettings } from '../../context/SettingsContext';
+import { getImageUrl } from '../../services/api';
+import { getProducts, Product } from '../../services/productsService';
+import { COLORS } from '../../utils/theme';
 
 const CatalogueScreen = ({ navigation }: any) => {
-  // Mock data para demonstração enquanto a API não tem dados
-  const [products, setProducts] = useState([
-    { id: 1, nome: 'Miniatura Dragão 3D', preco: 25.90, imagem: 'https://via.placeholder.com/150' },
-    { id: 2, nome: 'Vaso Geométrico', preco: 15.00, imagem: 'https://via.placeholder.com/150' },
-    { id: 3, nome: 'Suporte Headset', preco: 12.50, imagem: 'https://via.placeholder.com/150' },
-    { id: 4, nome: 'Chaveiro Personalizado', preco: 5.00, imagem: 'https://via.placeholder.com/150' },
-  ]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const { formatPrice, currency, setCurrency } = useSettings();
+  const { width } = useWindowDimensions();
 
-  const renderItem = ({ item }: any) => (
-    <TouchableOpacity style={styles.card}>
-      <Image source={{ uri: item.imagem }} style={styles.image} />
+  // Dynamic columns for responsiveness
+  const numColumns = width > 1000 ? 5 : width > 768 ? 4 : width > 480 ? 3 : 2;
+
+  const fetchProducts = useCallback(async (isRefresh = false) => {
+    if (!isRefresh) setLoading(true);
+    try {
+        const data = await getProducts();
+        setProducts(data || []);
+    } catch (e) {
+        console.error('Erro ao carregar catalogo:', e);
+    } finally {
+        setLoading(false);
+        setRefreshing(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchProducts();
+    const unsubscribe = navigation.addListener('focus', () => {
+        fetchProducts();
+    });
+    return unsubscribe;
+  }, [navigation, fetchProducts]);
+
+  const onRefresh = () => {
+    setRefreshing(true);
+    fetchProducts(true);
+  };
+
+  const toggleCurrency = () => {
+    const currencies: any = ['€', '$', 'R$'];
+    const nextIndex = (currencies.indexOf(currency) + 1) % currencies.length;
+    setCurrency(currencies[nextIndex]);
+  };
+
+  const renderItem = ({ item }: { item: Product }) => (
+    <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('ProductDetails', { productId: item.id })}>
+      <Image
+        source={{ uri: getImageUrl(item.imagens?.[0]) }}
+        style={styles.image}
+        resizeMode="cover"
+      />
       <View style={styles.info}>
-        <Text style={styles.name}>{item.nome}</Text>
-        <Text style={styles.price}>{item.preco.toFixed(2)} €</Text>
-        <TouchableOpacity style={styles.button}>
+        <Text style={styles.name} numberOfLines={2}>{item.nome}</Text>
+        <View style={styles.priceRow}>
+            <Text style={styles.price}>{formatPrice(item.preco)}</Text>
+            {item.stockQuantity <= 0 && <Text style={styles.noStock}>Sob enc.</Text>}
+        </View>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('ProductDetails', { productId: item.id })}>
           <Text style={styles.buttonText}>Ver Detalhes</Text>
         </TouchableOpacity>
       </View>
@@ -26,27 +82,64 @@ const CatalogueScreen = ({ navigation }: any) => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
+      <StatusBar barStyle="light-content" />
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>Catálogo 3D</Text>
-        <View style={styles.headerIcons}>
-          <Search color="#1A73E8" size={24} style={{ marginRight: 15 }} />
-          <ShoppingCart color="#1A73E8" size={24} />
+        <View style={styles.headerInner}>
+          <View>
+            <Text style={styles.title}>Catálogo 3D</Text>
+            <Text style={styles.subtitle}>{products.length} itens disponíveis</Text>
+          </View>
+          <View style={styles.headerIcons}>
+            <TouchableOpacity onPress={toggleCurrency} style={styles.iconBtn}>
+               <DollarSign color={COLORS.accentGold} size={20} />
+               <Text style={styles.currencyText}>{currency}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => navigation.navigate('AddProduct')} style={styles.iconBtn}>
+               <Plus color={COLORS.primary} size={24} />
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.iconBtn}>
+              <ShoppingCart color={COLORS.slate400} size={24} />
+            </TouchableOpacity>
+          </View>
         </View>
       </View>
 
       <View style={styles.searchBar}>
-        <Text style={styles.searchText}>Pesquisar produtos...</Text>
-        <Filter color="#666" size={20} />
+        <View style={styles.searchInner}>
+          <Search color={COLORS.slate400} size={18} style={{ marginRight: 10 }} />
+          <Text style={styles.searchText}>Pesquisar produtos...</Text>
+        </View>
+        <Filter color={COLORS.slate400} size={20} />
       </View>
 
-      <FlatList
-        data={products}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        numColumns={2}
-        contentContainerStyle={styles.list}
-      />
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Carregando catálogo...</Text>
+        </View>
+      ) : (
+        <FlatList
+          key={numColumns} // Force re-render when columns change
+          data={products}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          numColumns={numColumns}
+          contentContainerStyle={styles.list}
+          refreshControl={
+            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+          }
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <RefreshCcw color={COLORS.slate400} size={48} style={{ marginBottom: 15 }} />
+              <Text style={styles.emptyText}>Nenhum produto encontrado</Text>
+              <TouchableOpacity style={styles.retryBtn} onPress={() => fetchProducts()}>
+                <Text style={styles.retryText}>Tentar Novamente</Text>
+              </TouchableOpacity>
+            </View>
+          }
+        />
+      )}
     </SafeAreaView>
   );
 };
@@ -54,80 +147,167 @@ const CatalogueScreen = ({ navigation }: any) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: COLORS.backgroundDark,
   },
   header: {
+    backgroundColor: COLORS.backgroundDark,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.borderDark,
+  },
+  headerInner: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 15,
-    backgroundColor: '#FFF',
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#1A73E8',
+    color: '#FFF',
+  },
+  subtitle: {
+    fontSize: 12,
+    color: COLORS.slate500,
+    marginTop: 2,
   },
   headerIcons: {
     flexDirection: 'row',
+    alignItems: 'center',
+  },
+  iconBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 15,
+    padding: 4,
+  },
+  currencyText: {
+    color: COLORS.accentGold,
+    fontWeight: 'bold',
+    fontSize: 16,
+    marginLeft: 2,
   },
   searchBar: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: '#EEE',
+    backgroundColor: COLORS.cardDark,
     margin: 15,
     padding: 12,
-    borderRadius: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
+    maxWidth: 1200,
+    width: '94%',
+    alignSelf: 'center',
+  },
+  searchInner: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   searchText: {
-    color: '#666',
+    color: COLORS.slate400,
+    fontSize: 14,
   },
   list: {
     paddingHorizontal: 10,
+    paddingBottom: 20,
+    maxWidth: 1200,
+    width: '100%',
+    alignSelf: 'center',
+  },
+  center: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: COLORS.slate400,
+    marginTop: 10,
+    fontSize: 14,
+  },
+  emptyContainer: {
+    flex: 1,
+    marginTop: 100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: COLORS.slate400,
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  retryBtn: {
+    marginTop: 20,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: COLORS.cardDark,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
+  },
+  retryText: {
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   card: {
     flex: 1,
-    backgroundColor: '#FFF',
+    backgroundColor: COLORS.cardDark,
     margin: 8,
     borderRadius: 15,
     overflow: 'hidden',
-    elevation: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.borderDark,
+    elevation: 4,
   },
   image: {
     width: '100%',
-    height: 150,
+    height: 140,
+    backgroundColor: COLORS.slate800,
   },
   info: {
-    padding: 10,
+    padding: 12,
   },
   name: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 5,
+    color: '#FFF',
+    marginBottom: 6,
+    height: 36,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
   },
   price: {
     fontSize: 16,
     fontWeight: 'bold',
-    color: '#1A73E8',
-    marginBottom: 10,
+    color: COLORS.primary,
+  },
+  noStock: {
+    fontSize: 9,
+    color: '#EF4444',
+    fontWeight: 'bold',
+    backgroundColor: '#EF444420',
+    paddingHorizontal: 5,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   button: {
-    backgroundColor: '#1A73E8',
+    backgroundColor: COLORS.primary,
     paddingVertical: 8,
-    borderRadius: 5,
+    borderRadius: 8,
     alignItems: 'center',
   },
   buttonText: {
     color: '#FFF',
     fontSize: 12,
-    fontWeight: '600',
+    fontWeight: '700',
   },
 });
 

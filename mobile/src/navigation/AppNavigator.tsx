@@ -1,23 +1,50 @@
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
-import DashboardScreen from '../screens/admin/DashboardScreen';
-import CatalogueScreen from '../screens/public/CatalogueScreen';
+import AddFilamentScreen from '../screens/admin/AddFilamentScreen';
+import AddProductScreen from '../screens/admin/AddProductScreen';
+import CreateOrderScreen from '../screens/admin/CreateOrderScreen';
+import OrderDetailsScreen from '../screens/admin/OrderDetailsScreen';
+import ProductDetailsScreen from '../screens/admin/ProductDetailsScreen';
+import TabNavigator from './TabNavigator';
+
+import { AuthProvider, useAuth } from '../context/AuthContext';
+import { SettingsProvider } from '../context/SettingsContext';
+import ClientsPage from '../screens/admin/ClientsPage';
+import LoginScreen from '../screens/auth/LoginScreen';
 
 const Stack = createStackNavigator();
 
-const AppNavigator = () => {
-  const isAdmin = true; // Simular estado de login para demonstração
+const Routes = () => {
+  const { signed } = useAuth();
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {isAdmin ? (
-          <Stack.Screen name="AdminDashboard" component={DashboardScreen} />
-        ) : (
-          <Stack.Screen name="PublicCatalogue" component={CatalogueScreen} />
-        )}
-      </Stack.Navigator>
-    </NavigationContainer>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {signed ? (
+        <>
+          <Stack.Screen name="AdminMain" component={TabNavigator} />
+          <Stack.Screen name="OrderDetails" component={OrderDetailsScreen} />
+          <Stack.Screen name="AddFilament" component={AddFilamentScreen} />
+          <Stack.Screen name="AddProduct" component={AddProductScreen} />
+          <Stack.Screen name="CreateOrder" component={CreateOrderScreen} />
+          <Stack.Screen name="ProductDetails" component={ProductDetailsScreen} />
+          <Stack.Screen name="Clients" component={ClientsPage} />
+        </>
+      ) : (
+        <Stack.Screen name="Login" component={LoginScreen} />
+      )}
+    </Stack.Navigator>
+  );
+};
+
+const AppNavigator = () => {
+  return (
+    <AuthProvider>
+      <SettingsProvider>
+        <NavigationContainer>
+          <Routes />
+        </NavigationContainer>
+      </SettingsProvider>
+    </AuthProvider>
   );
 };
 

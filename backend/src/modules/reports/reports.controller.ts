@@ -8,6 +8,12 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
+
+  @Get('dashboard')
+  async getDashboardStats() {
+    return this.reportsService.getDashboardStats();
+  }
+
   @Get('orders/excel')
   async downloadOrdersExcel(@Res() res: Response) {
     const buffer = await this.reportsService.generateOrdersExcel();
