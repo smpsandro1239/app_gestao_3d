@@ -27,12 +27,12 @@ import {
     StatusBar,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     View,
     useWindowDimensions
 } from 'react-native';
 import * as Yup from 'yup';
+import InputGroup from '../../components/InputGroup';
 import { useSettings } from '../../context/SettingsContext';
 import { createProduct, getProduct, updateProduct } from '../../services/productsService';
 import { uploadImage } from '../../services/uploadService';
@@ -370,25 +370,6 @@ const AddProductScreen = ({ navigation, route }: any) => {
   );
 };
 
-const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, onBlur, multiline, error }: any) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={[styles.inputWrapper, multiline && styles.multilineWrapper, error && { borderColor: '#ef4444' }]}>
-      <Icon color={error ? '#ef4444' : COLORS.primary} size={18} style={[styles.inputIcon, multiline && { marginTop: 15 }]} />
-      <TextInput
-        style={[styles.input, multiline && styles.multilineInput]}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.slate400}
-        keyboardType={keyboardType}
-        value={value}
-        onChangeText={onChangeText}
-        onBlur={onBlur}
-        multiline={multiline}
-      />
-    </View>
-    {error && <Text style={styles.errorText}>{error}</Text>}
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -422,47 +403,11 @@ const styles = StyleSheet.create({
   formWrapper: {
     width: '100%',
   },
-  inputGroup: {
-    marginBottom: 20,
-  },
   inputLabel: {
     color: COLORS.slate500,
     fontSize: 11,
     fontWeight: 'bold',
     marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardDark,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.borderDark,
-    height: 56,
-  },
-  multilineWrapper: {
-    height: 100,
-    alignItems: 'flex-start',
-  },
-  inputIcon: {
-    marginLeft: 15,
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 15,
-    color: '#FFF',
-    fontSize: 15,
-  },
-  multilineInput: {
-    height: '100%',
-    textAlignVertical: 'top',
-    paddingTop: 15,
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 11,
-    marginTop: 6,
-    fontWeight: '500',
   },
   row: {
     flexDirection: 'row',

@@ -11,13 +11,13 @@ import {
     StatusBar,
     StyleSheet,
     Text,
-    TextInput,
     TouchableOpacity,
     useWindowDimensions,
     View
 } from 'react-native';
 import * as Yup from 'yup';
 
+import InputGroup from '../../components/InputGroup';
 import { useSettings } from '../../context/SettingsContext';
 import { Client, getClients } from '../../services/clientsService';
 import { createOrder } from '../../services/orderService';
@@ -236,7 +236,7 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
                             icon={Package}
                             label="PRODUTO / SERVIÇO"
                             placeholder="Selecione um modelo"
-                            value={selectedProduct?.nome}
+                            value={selectedProduct?.nome || ''}
                             editable={false}
                             rightIcon={ChevronDown}
                         />
@@ -373,26 +373,6 @@ const CreateOrderScreen = ({ navigation, route }: any) => {
   );
 };
 
-const InputGroup = ({ icon: Icon, label, placeholder, keyboardType, value, onChangeText, editable = true, rightIcon: RightIcon, error, onBlur }: any) => (
-  <View style={styles.inputGroup}>
-    <Text style={styles.inputLabel}>{label}</Text>
-    <View style={[styles.inputWrapper, error && { borderColor: '#ef4444' }]}>
-      <Icon color={error ? '#ef4444' : COLORS.primary} size={18} style={styles.inputIcon} />
-      <TextInput
-        style={[styles.input, !editable && { opacity: 0.7 }]}
-        placeholder={placeholder}
-        placeholderTextColor={COLORS.slate400}
-        keyboardType={keyboardType}
-        value={value}
-        onChangeText={onChangeText}
-        editable={editable}
-        onBlur={onBlur}
-      />
-      {RightIcon && <RightIcon color={COLORS.slate400} size={20} style={{ marginRight: 15 }} />}
-    </View>
-    {error && <Text style={styles.errorText}>{typeof error === 'string' ? error : 'Campo obrigatório'}</Text>}
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -432,39 +412,6 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginBottom: 15,
     letterSpacing: 1,
-  },
-  inputGroup: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    color: COLORS.slate500,
-    fontSize: 11,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.cardDark,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.borderDark,
-    height: 56,
-  },
-  inputIcon: {
-    marginLeft: 15,
-  },
-  input: {
-    flex: 1,
-    paddingHorizontal: 15,
-    color: '#FFF',
-    fontSize: 15,
-  },
-  errorText: {
-    color: '#ef4444',
-    fontSize: 11,
-    marginTop: 6,
-    fontWeight: '500',
   },
   row: {
     flexDirection: 'row',
