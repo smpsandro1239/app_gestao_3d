@@ -14,37 +14,37 @@ export class FinanceService implements OnModuleInit {
   async onModuleInit() {
     const records = await this.financeRepository.count();
     if (records === 0) {
-        console.log('Seeding initial finance records...');
-        const initialRecords = [
-            {
-                tipo: FinanceType.ENTRADA,
-                valor: 150.00,
-                descricao: 'Venda Conjunto Vasos',
-                data: new Date(new Date().setDate(new Date().getDate() - 5))
-            },
-            {
-                tipo: FinanceType.SAIDA,
-                valor: 45.00,
-                descricao: 'Compra 2Kg PLA (Preto e Branco)',
-                data: new Date(new Date().setDate(new Date().getDate() - 4))
-            },
-            {
-                tipo: FinanceType.ENTRADA,
-                valor: 35.00,
-                descricao: 'Encomenda Miniatura Dragão',
-                data: new Date(new Date().setDate(new Date().getDate() - 2))
-            },
-            {
-                tipo: FinanceType.SAIDA,
-                valor: 12.00,
-                descricao: 'Peças Reposição Extrusora',
-                data: new Date(new Date().setDate(new Date().getDate() - 1))
-            }
-        ];
+      console.log('Seeding initial finance records...');
+      const initialRecords = [
+        {
+          tipo: FinanceType.ENTRADA,
+          valor: 150.0,
+          descricao: 'Venda Conjunto Vasos',
+          data: new Date(new Date().setDate(new Date().getDate() - 5)),
+        },
+        {
+          tipo: FinanceType.SAIDA,
+          valor: 45.0,
+          descricao: 'Compra 2Kg PLA (Preto e Branco)',
+          data: new Date(new Date().setDate(new Date().getDate() - 4)),
+        },
+        {
+          tipo: FinanceType.ENTRADA,
+          valor: 35.0,
+          descricao: 'Encomenda Miniatura Dragão',
+          data: new Date(new Date().setDate(new Date().getDate() - 2)),
+        },
+        {
+          tipo: FinanceType.SAIDA,
+          valor: 12.0,
+          descricao: 'Peças Reposição Extrusora',
+          data: new Date(new Date().setDate(new Date().getDate() - 1)),
+        },
+      ];
 
-        for (const r of initialRecords) {
-            await this.create(r as any);
-        }
+      for (const r of initialRecords) {
+        await this.create(r as any);
+      }
     }
   }
 
@@ -63,11 +63,11 @@ export class FinanceService implements OnModuleInit {
     const records = await this.financeRepository.find();
 
     const entradas = records
-      .filter(r => r.tipo === FinanceType.ENTRADA)
+      .filter((r) => r.tipo === FinanceType.ENTRADA)
       .reduce((acc, r) => acc + Number(r.valor), 0);
 
     const saidas = records
-      .filter(r => r.tipo === FinanceType.SAIDA)
+      .filter((r) => r.tipo === FinanceType.SAIDA)
       .reduce((acc, r) => acc + Number(r.valor), 0);
 
     const lucro = entradas - saidas;
@@ -76,7 +76,7 @@ export class FinanceService implements OnModuleInit {
       entradas,
       saidas,
       lucro,
-      totalRegistos: records.length
+      totalRegistos: records.length,
     };
   }
 }

@@ -13,32 +13,32 @@ export class PrintersService implements OnModuleInit {
   async onModuleInit() {
     const printers = await this.printerRepository.count();
     if (printers === 0) {
-        console.log('Seeding initial printers...');
-        const initialPrinters = [
-            {
-                nome: 'Ender 3 S1 Pro',
-                modelo: 'Creality',
-                status: PrinterStatus.PRINTING,
-                progressoAtual: 65,
-                trabalhoAtual: 'Miniatura Dragão'
-            },
-            {
-                nome: 'Prusa MK3S+',
-                modelo: 'Prusa Research',
-                status: PrinterStatus.IDLE,
-                progressoAtual: 0
-            },
-            {
-                nome: 'Bambu Lab X1C',
-                modelo: 'Bambu Lab',
-                status: PrinterStatus.IDLE,
-                progressoAtual: 0
-            }
-        ];
+      console.log('Seeding initial printers...');
+      const initialPrinters = [
+        {
+          nome: 'Ender 3 S1 Pro',
+          modelo: 'Creality',
+          status: PrinterStatus.PRINTING,
+          progressoAtual: 65,
+          trabalhoAtual: 'Miniatura Dragão',
+        },
+        {
+          nome: 'Prusa MK3S+',
+          modelo: 'Prusa Research',
+          status: PrinterStatus.IDLE,
+          progressoAtual: 0,
+        },
+        {
+          nome: 'Bambu Lab X1C',
+          modelo: 'Bambu Lab',
+          status: PrinterStatus.IDLE,
+          progressoAtual: 0,
+        },
+      ];
 
-        for (const p of initialPrinters) {
-            await this.printerRepository.save(p);
-        }
+      for (const p of initialPrinters) {
+        await this.printerRepository.save(p);
+      }
     }
   }
 

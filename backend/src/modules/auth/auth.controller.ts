@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Post, Req, Res, UnauthorizedException, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  Req,
+  Res,
+  UnauthorizedException,
+  UseGuards,
+} from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { AuthService } from './auth.service';
 
@@ -8,7 +17,10 @@ export class AuthController {
 
   @Post('login')
   async login(@Body() body: any) {
-    const user = await this.authService.validateUserByPassword(body.email, body.password);
+    const user = await this.authService.validateUserByPassword(
+      body.email,
+      body.password,
+    );
     if (!user) {
       throw new UnauthorizedException('Credenciais inválidas');
     }

@@ -24,7 +24,7 @@ export class ReportsService {
       { header: 'Data', key: 'data', width: 20 },
     ];
 
-    orders.forEach(order => {
+    orders.forEach((order) => {
       sheet.addRow({
         id: order.id,
         cliente: order.cliente.nome,
@@ -50,7 +50,7 @@ export class ReportsService {
       { header: 'Data', key: 'data', width: 20 },
     ];
 
-    records.forEach(record => {
+    records.forEach((record) => {
       sheet.addRow({
         id: record.id,
         tipo: record.tipo,
@@ -68,7 +68,12 @@ export class ReportsService {
     const finances = await this.financeService.findAll();
 
     // Calculate stats
-    const activeOrders = orders.filter(o => o.status !== 'FINALIZADO' && o.status !== 'CANCELADO' && o.status !== 'ENTREGUE').length;
+    const activeOrders = orders.filter(
+      (o) =>
+        o.status !== 'FINALIZADO' &&
+        o.status !== 'CANCELADO' &&
+        o.status !== 'ENTREGUE',
+    ).length;
 
     // Mocking new clients for now as ClientService isn't injected, or filter from orders if possible
     // For simplicity, let's say "Orders from new clients" or just fetch all clients if we injected ClientService
@@ -76,11 +81,18 @@ export class ReportsService {
 
     const currentMonth = new Date().getMonth();
     const monthlyRevenue = finances
-      .filter(f => new Date(f.data).getMonth() === currentMonth && f.tipo === FinanceType.ENTRADA)
+      .filter(
+        (f) =>
+          new Date(f.data).getMonth() === currentMonth &&
+          f.tipo === FinanceType.ENTRADA,
+      )
       .reduce((acc, curr) => acc + Number(curr.valor), 0);
 
-    const overdueOrders = orders.filter(o =>
-      o.dataEntregaPrevista && new Date(o.dataEntregaPrevista) < new Date() && o.status !== 'ENTREGUE'
+    const overdueOrders = orders.filter(
+      (o) =>
+        o.dataEntregaPrevista &&
+        new Date(o.dataEntregaPrevista) < new Date() &&
+        o.status !== 'ENTREGUE',
     ).length;
 
     return {

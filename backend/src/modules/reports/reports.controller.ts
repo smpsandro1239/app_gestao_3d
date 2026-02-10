@@ -8,7 +8,6 @@ import { ReportsService } from './reports.service';
 export class ReportsController {
   constructor(private readonly reportsService: ReportsService) {}
 
-
   @Get('dashboard')
   async getDashboardStats() {
     return this.reportsService.getDashboardStats();
@@ -17,7 +16,10 @@ export class ReportsController {
   @Get('orders/excel')
   async downloadOrdersExcel(@Res() res: Response) {
     const buffer = await this.reportsService.generateOrdersExcel();
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
     res.setHeader('Content-Disposition', 'attachment; filename=pedidos.xlsx');
     res.send(buffer);
   }
@@ -25,8 +27,14 @@ export class ReportsController {
   @Get('finance/excel')
   async downloadFinanceExcel(@Res() res: Response) {
     const buffer = await this.reportsService.generateFinanceExcel();
-    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-    res.setHeader('Content-Disposition', 'attachment; filename=financeiro.xlsx');
+    res.setHeader(
+      'Content-Type',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    );
+    res.setHeader(
+      'Content-Disposition',
+      'attachment; filename=financeiro.xlsx',
+    );
     res.send(buffer);
   }
 }

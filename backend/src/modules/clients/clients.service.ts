@@ -15,30 +15,30 @@ export class ClientsService implements OnModuleInit {
   async onModuleInit() {
     const clients = await this.clientRepository.count();
     if (clients === 0) {
-        console.log('Seeding initial clients...');
-        const initialClients = [
-            {
-                nome: 'João Silva',
-                email: 'joao.silva@example.com',
-                telefone: '912345678',
-                endereco: 'Rua das Flores, 123, Lisboa',
-            },
-            {
-                nome: 'Maria Pereira',
-                email: 'maria.p@example.com',
-                telefone: '923456789',
-                endereco: 'Av. Liberdade, 45, Porto',
-            },
-            {
-                nome: 'Carlos Santos',
-                email: 'carlos.santos@hub.pt',
-                telefone: '934567890',
-            }
-        ];
+      console.log('Seeding initial clients...');
+      const initialClients = [
+        {
+          nome: 'João Silva',
+          email: 'joao.silva@example.com',
+          telefone: '912345678',
+          endereco: 'Rua das Flores, 123, Lisboa',
+        },
+        {
+          nome: 'Maria Pereira',
+          email: 'maria.p@example.com',
+          telefone: '923456789',
+          endereco: 'Av. Liberdade, 45, Porto',
+        },
+        {
+          nome: 'Carlos Santos',
+          email: 'carlos.santos@hub.pt',
+          telefone: '934567890',
+        },
+      ];
 
-        for (const c of initialClients) {
-            await this.create(c as any);
-        }
+      for (const c of initialClients) {
+        await this.create(c as any);
+      }
     }
   }
 
@@ -49,7 +49,7 @@ export class ClientsService implements OnModuleInit {
   async findOne(id: number) {
     const client = await this.clientRepository.findOne({
       where: { id },
-      relations: ['pedidos']
+      relations: ['pedidos'],
     });
     if (!client) {
       throw new NotFoundException(`Cliente com ID ${id} não encontrado.`);

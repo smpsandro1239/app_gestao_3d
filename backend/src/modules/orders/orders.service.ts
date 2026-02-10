@@ -24,33 +24,33 @@ export class OrdersService implements OnModuleInit {
   async onModuleInit() {
     // Wait a bit to ensure other services have seeded
     setTimeout(async () => {
-        const count = await this.orderRepository.count();
-        if (count === 0) {
-            console.log('Seeding initial orders...');
-            try {
-                const clients = await this.clientsService.findAll();
-                const products = await this.productsService.findAll();
+      const count = await this.orderRepository.count();
+      if (count === 0) {
+        console.log('Seeding initial orders...');
+        try {
+          const clients = await this.clientsService.findAll();
+          const products = await this.productsService.findAll();
 
-                if (clients.length > 0 && products.length > 0) {
-                    await this.create({
-                        clienteId: clients[0].id,
-                        metodoEntrega: 'Levantamento',
-                        custoEntrega: 0,
-                        dataEntregaPrevista: new Date(),
-                        notas: 'Cliente habitual',
-                        itens: [
-                            {
-                                produtoId: products[0].id,
-                                quantidade: 1,
-                                precoUnitario: products[0].preco
-                            }
-                        ]
-                    });
-                }
-            } catch (e) {
-                console.log('Error seeding orders:', e.message);
-            }
+          if (clients.length > 0 && products.length > 0) {
+            await this.create({
+              clienteId: clients[0].id,
+              metodoEntrega: 'Levantamento',
+              custoEntrega: 0,
+              dataEntregaPrevista: new Date(),
+              notas: 'Cliente habitual',
+              itens: [
+                {
+                  produtoId: products[0].id,
+                  quantidade: 1,
+                  precoUnitario: products[0].preco,
+                },
+              ],
+            });
+          }
+        } catch (e) {
+          console.log('Error seeding orders:', e.message);
         }
+      }
     }, 5000);
   }
 
@@ -79,7 +79,8 @@ export class OrdersService implements OnModuleInit {
     order.cliente = cliente;
     order.metodoEntrega = createOrderDto.metodoEntrega || 'Levantamento';
     order.custoEntrega = createOrderDto.custoEntrega || 0;
-    order.dataEntregaPrevista = createOrderDto.dataEntregaPrevista || new Date();
+    order.dataEntregaPrevista =
+      createOrderDto.dataEntregaPrevista || new Date();
     order.notas = createOrderDto.notas || '';
     order.status = OrderStatus.RECEBIDO;
 
