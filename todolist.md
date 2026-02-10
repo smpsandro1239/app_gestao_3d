@@ -42,7 +42,7 @@
    ☑ 4.4.5 Finanças (Tela FinanceScreen criada)
 ☑ 4.5 Componentes reutilizáveis + design system básico
 ☑ 4.6 Estado global (Contexts implementados)
-□ 4.7 Tratamento de loading / erro / offline (Sprint 1 - EM PROGRESSO)
+□ 4.7 Tratamento de loading / erro / offline (Sprint 1) (☑)
 ☑ 4.8 Formulários com validação (Formik + Yup) (Sprint 1)
 ☐ 4.9 Testes básicos de UI (Detox ou React Native Testing Library)
 
@@ -52,7 +52,7 @@
 ☐ 5.2 Lint + Prettier + TypeScript strict (Sprint 1)
 ☑ 5.3 Documentação técnica (DEPLOY.md e README.md iniciados)
 ☑ 5.4 Plano de deploy (Definido em DEPLOY.md)
-☐ 5.5 Segurança básica (CORS configurado, falta rate-limit, helmet) (Sprint 1)
+☑ 5.5 Segurança básica (CORS, Rate Limit, Helmet) (Sprint 1)
 
 ## 6. Features Futuras / Nice-to-have (fora do MVP)
 
