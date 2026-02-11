@@ -13,23 +13,23 @@ export enum FinanceType {
 @Entity('financeiro')
 export class Finance {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({
     type: 'enum',
     enum: FinanceType,
   })
-  tipo: FinanceType;
+  tipo!: FinanceType;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  valor: number;
+  valor!: number;
 
   @Column()
-  descricao: string;
+  descricao!: string;
 
   @Column({ nullable: true })
-  referenciaPedidoId: number;
+  referenciaPedidoId!: number;
 
   @CreateDateColumn()
-  data: Date;
+  data!: Date;
 }

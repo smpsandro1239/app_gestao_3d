@@ -3,13 +3,13 @@ import { FinanceType } from '../../../entities/finance.entity';
 
 export class CreateFinanceDto {
   @IsEnum(FinanceType)
-  tipo: FinanceType;
+  tipo!: FinanceType;
 
   @IsNumber()
-  valor: number;
+  valor!: number;
 
   @IsString()
-  descricao: string;
+  descricao!: string;
 
   @IsNumber()
   @IsOptional()

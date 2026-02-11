@@ -8,14 +8,14 @@ import {
 
 export class CreateProductDto {
   @IsString()
-  nome: string;
+  nome!: string;
 
   @IsString()
   @IsOptional()
   descricao?: string;
 
   @IsNumber()
-  preco: number;
+  preco!: number;
 
   @IsNumber()
   @IsOptional()

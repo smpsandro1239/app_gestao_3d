@@ -10,10 +10,10 @@ import {
 
 class CreateOrderItemDto {
   @IsNumber()
-  produtoId: number;
+  produtoId!: number;
 
   @IsNumber()
-  quantidade: number;
+  quantidade!: number;
 
   @IsNumber()
   @IsOptional()
@@ -38,12 +38,12 @@ class CreateOrderItemDto {
 
 export class CreateOrderDto {
   @IsNumber()
-  clienteId: number;
+  clienteId!: number;
 
   @IsArray()
   @ValidateNested({ each: true })
   @Type(() => CreateOrderItemDto)
-  itens: CreateOrderItemDto[];
+  itens!: CreateOrderItemDto[];
 
   @IsString()
   @IsOptional()

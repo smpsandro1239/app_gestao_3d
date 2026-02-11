@@ -48,7 +48,7 @@ export class OrdersService implements OnModuleInit {
             });
           }
         } catch (e) {
-          console.log('Error seeding orders:', e.message);
+          console.log('Error seeding orders:', (e as any).message);
         }
       }
     }, 5000);

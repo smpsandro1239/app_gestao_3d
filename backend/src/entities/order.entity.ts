@@ -23,23 +23,23 @@ export enum OrderStatus {
 @Entity('pedidos')
 export class Order {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Client, (client) => client.pedidos)
-  cliente: Client;
+  cliente!: Client;
 
   @OneToMany(() => OrderItem, (item) => item.pedido, { cascade: true })
-  itens: OrderItem[];
+  itens!: OrderItem[];
 
   @Column('decimal', { precision: 10, scale: 2 })
-  total: number;
+  total!: number;
 
   @Column({
     type: 'enum',
     enum: OrderStatus,
     default: OrderStatus.RECEBIDO,
   })
-  status: OrderStatus;
+  status!: OrderStatus;
 
   @Column({ nullable: true })
   dataEntregaPrevista?: Date;
@@ -48,14 +48,14 @@ export class Order {
   metodoEntrega?: string;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  custoEntrega: number;
+  custoEntrega!: number;
 
   @Column('text', { nullable: true })
   notas?: string;
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

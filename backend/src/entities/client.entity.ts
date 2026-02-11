@@ -11,10 +11,10 @@ import { Order } from './order.entity';
 @Entity('clientes')
 export class Client {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  nome: string;
+  nome!: string;
 
   @Column({ unique: true, nullable: true })
   email?: string;
@@ -26,11 +26,11 @@ export class Client {
   morada?: string;
 
   @OneToMany(() => Order, (order) => order.cliente)
-  pedidos: Order[];
+  pedidos!: Order[];
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

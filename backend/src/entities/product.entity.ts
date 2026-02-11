@@ -9,38 +9,38 @@ import {
 @Entity('produtos')
 export class Product {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  nome: string;
+  nome!: string;
 
   @Column('text', { nullable: true })
   descricao?: string;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  preco: number;
+  preco!: number;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0 })
-  custoProducao: number;
+  custoProducao!: number;
 
   @Column('decimal', { precision: 10, scale: 2, default: 0, nullable: true })
-  pesoEstimado: number; // gramas
+  pesoEstimado!: number; // gramas
 
   @Column('int', { default: 0, nullable: true })
-  tempoImpressao: number; // minutos
+  tempoImpressao!: number; // minutos
 
   @Column('int', { default: 0 })
-  stockQuantity: number;
+  stockQuantity!: number;
 
   @Column('text', { array: true, nullable: true })
   imagens?: string[];
 
   @Column({ default: true })
-  ativo: boolean;
+  ativo!: boolean;
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

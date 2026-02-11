@@ -9,10 +9,10 @@ import {
 @Entity('utilizadores')
 export class User {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column({ unique: true })
-  email: string;
+  email!: string;
 
   @Column({ nullable: true })
   nome?: string;
@@ -27,8 +27,8 @@ export class User {
   password?: string;
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

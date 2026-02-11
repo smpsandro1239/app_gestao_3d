@@ -5,19 +5,19 @@ import { Product } from './product.entity';
 @Entity('itens_pedido')
 export class OrderItem {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @ManyToOne(() => Order, (order) => order.itens)
-  pedido: Order;
+  pedido!: Order;
 
   @ManyToOne(() => Product)
-  produto: Product;
+  produto!: Product;
 
   @Column('int')
-  quantidade: number;
+  quantidade!: number;
 
   @Column('decimal', { precision: 10, scale: 2 })
-  precoUnitario: number;
+  precoUnitario!: number;
 
   @Column({ nullable: true })
   cor?: string;

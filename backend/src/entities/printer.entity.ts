@@ -16,33 +16,33 @@ export enum PrinterStatus {
 @Entity('impressoras')
 export class Printer {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  nome: string;
+  nome!: string;
 
   @Column()
-  modelo: string;
+  modelo!: string;
 
   @Column({
     type: 'enum',
     enum: PrinterStatus,
     default: PrinterStatus.IDLE,
   })
-  status: PrinterStatus;
+  status!: PrinterStatus;
 
   @Column({ nullable: true })
-  currentOrderId: number;
+  currentOrderId!: number;
 
   @Column('int', { default: 0 })
-  progressoAtual: number; // Porcentagem de 0 a 100
+  progressoAtual!: number; // Porcentagem de 0 a 100
 
   @Column({ nullable: true })
-  trabalhoAtual: string; // Nome do modelo sendo impresso
+  trabalhoAtual!: string; // Nome do modelo sendo impresso
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

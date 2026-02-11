@@ -2,7 +2,7 @@ import { IsEmail, IsOptional, IsString } from 'class-validator';
 
 export class CreateClientDto {
   @IsString()
-  nome: string;
+  nome!: string;
 
   @IsEmail()
   @IsOptional()
