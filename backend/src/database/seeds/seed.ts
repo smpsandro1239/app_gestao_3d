@@ -21,7 +21,7 @@ export async function runSeed(dataSource: DataSource) {
     const adminUser = userRepository.create({
       email: 'admin@gestao3d.pt',
       nome: 'Administrador',
-      password: 'admin123', // Em produção, usar hash
+      // Autenticação via Google OAuth, sem password local
     });
     await userRepository.save(adminUser);
     console.log('✅ Utilizador administrador criado');
