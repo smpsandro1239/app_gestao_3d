@@ -19,42 +19,42 @@ export enum MaterialType {
 @Entity('filamentos')
 export class Filament {
   @PrimaryGeneratedColumn()
-  id: number;
+  id!: number;
 
   @Column()
-  marca: string;
+  marca!: string;
 
   @Column({
     type: 'enum',
     enum: MaterialType,
     default: MaterialType.PLA,
   })
-  material: MaterialType;
+  material!: MaterialType;
 
   @Column()
-  cor: string;
+  cor!: string;
 
   @Column({ nullable: true })
-  corHex: string; // Ex: #000000
+  corHex!: string; // Ex: #000000
 
   @Column('decimal', { precision: 10, scale: 2 })
-  pesoInicial: number; // em gramas
+  pesoInicial!: number; // em gramas
 
   @Column('decimal', { precision: 10, scale: 2 })
-  pesoAtual: number; // em gramas
+  pesoAtual!: number; // em gramas
 
   @Column('decimal', { precision: 10, scale: 2 })
-  custo: number; // Preço pago pelo carretel
+  custo!: number; // Preço pago pelo carretel
 
   @Column('decimal', { precision: 10, scale: 2, default: 100 })
-  alertaMinimo: number; // gramas para avisar que está acabando
+  alertaMinimo!: number; // gramas para avisar que está acabando
 
   @Column({ default: true })
-  ativo: boolean;
+  ativo!: boolean;
 
   @CreateDateColumn()
-  dataCriacao: Date;
+  dataCriacao!: Date;
 
   @UpdateDateColumn()
-  dataAtualizacao: Date;
+  dataAtualizacao!: Date;
 }

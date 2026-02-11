@@ -6,7 +6,7 @@
 ☑ 1.1 Definir paleta de cores, tipografia e espaçamentos (Design System v0)
 ☑ 1.2 Decidir: Expo ou React Native CLI ? (Expo 52 SDK)
 ☑ 1.3 Decidir: estratégia de autenticação offline (AsyncStorage + AuthContext)
-☐ 1.4 Definir convenções de nomenclatura (português PT-PT - em progresso)
+☑ 1.4 Definir convenções de nomenclatura (português PT-PT)
 
 ## 2. Infraestrutura & Ferramentas
 
@@ -25,7 +25,7 @@
 ☑ 3.7 Módulo Financeiro (Serviço base + Dashboard)
 ☑ 3.8 Módulo Relatórios (Stats Service implementado)
 ☑ 3.9 Módulo Uploads (Local storage implementado)
-☐ 3.10 Migrations + seed inicial (Sprint 1)
+☑ 3.10 Migrations + seed inicial (Sprint 1)
 ☑ 3.11 OpenAPI / Swagger automático (Configurado em main.ts)
 ☐ 3.12 Testes unitários + e2e (mínimo 70% coverage nas regras de negócio)
 
@@ -49,7 +49,7 @@
 ## 5. Qualidade & Deploy
 
 ☐ 5.1 Conventional commits + git hooks (commitlint, husky)
-☐ 5.2 Lint + Prettier + TypeScript strict (Sprint 1)
+☑ 5.2 Lint + Prettier + TypeScript strict (Sprint 1)
 ☑ 5.3 Documentação técnica (DEPLOY.md e README.md iniciados)
 ☑ 5.4 Plano de deploy (Definido em DEPLOY.md)
 ☑ 5.5 Segurança básica (CORS, Rate Limit, Helmet) (Sprint 1)
