@@ -29,7 +29,7 @@ Para ver a aplicação a funcionar agora mesmo:
 
 | Componente | Link de Demonstração | Deploy Rápido |
 | :--- | :--- | :--- |
-| **App Mobile (Web)** | [Ver Demo Web (Vercel)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsmpsandro1239%2Fapp_gestao_3d%2Ftree%2Fmain%2Fmobile) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsmpsandro1239%2Fapp_gestao_3d%2Ftree%2Fmain%2Fmobile) |
+| **App Mobile (Web)** | [Ver Demo Web (Vercel)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsmpsandro1239%2Fapp_gestao_3d&root-directory=mobile) | [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fsmpsandro1239%2Fapp_gestao_3d&root-directory=mobile) |
 | **Backend API** | [Documentação Swagger (Render)](https://render.com/deploy?repo=https://github.com/smpsandro1239/app_gestao_3d/tree/main/backend) | [![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/smpsandro1239/app_gestao_3d/tree/main/backend) |
 
 > **Nota:** A demo web permite navegar no catálogo e ver o dashboard. Para o funcionamento total (DB), deve fazer o deploy do backend.
